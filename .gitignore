@@ -1,0 +1,9 @@
+# artifacts
+__pycache__
+.pytest*
+*/build/*
+*/dist/*
+/.vscode/
+
+# Home Assistant configuration
+config/*
