@@ -1,25 +1,14 @@
-async def async_setup_entry(hass, config_entry, async_add_entities):
-    """Set up sensors for a specific device."""
-    device_config = hass.data[DOMAIN][config_entry.entry_id]
-    host = device_config["host"]
-    port = device_config["port"]
-
-    # Beispiel: Sensoren für dieses Gerät erstellen
-    async_add_entities([
-        ModbusSensor("Temperature Sensor", host, port, 1, "°C"),
-        ModbusSensor("Power Sensor", host, port, 2, "W"),
-    ])
-
+from homeassistant.components.sensor import SensorEntity
 
 class ModbusSensor(SensorEntity):
     """Representation of a Modbus sensor."""
 
-    def __init__(self, name, host, port, register, unit):
+    def __init__(self, coordinator, name, register_type, register_address, unit_of_measurement):
+        self._coordinator = coordinator 
         self._name = name
-        self._host = host
-        self._port = port
-        self._register = register
-        self._unit = unit
+        self._register_type = register_type
+        self._register_address = register_address
+        self._unit_of_measurement = unit_of_measurement
         self._state = None
 
     @property
@@ -30,12 +19,18 @@ class ModbusSensor(SensorEntity):
     def state(self):
         return self._state
 
-    async def async_update(self):
-        """Fetch new state data for the sensor."""
-        # Beispiel: Verbindung herstellen und Register auslesen
-        from pymodbus.client.async_tcp import AsyncModbusTcpClient
+    @property
+    def unit_of_measurement(self):
+        return self._unit_of_measurement
 
-        async with AsyncModbusTcpClient(self._host, self._port) as client:
-            result = await client.read_holding_registers(self._register, 1)
-            if not result.isError():
-                self._state = result.registers[0]
+    async def async_update(self):
+        """Fetch new state data from Modbus."""
+        if self._register_type == "holding":
+            value = await self._device.read_holding_register(self._register_address)
+        elif self._register_type == "input":
+            value = await self._device.read_input_register(self._register_address)
+        else:
+            value = None
+
+        if value is not None:
+            self._state = value[0]  # Lies das erste Register aus

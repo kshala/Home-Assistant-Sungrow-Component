@@ -10,21 +10,21 @@ class MyModbusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         errors = {}
         if user_input is not None:
-            # Validierung der Eingabe (z. B. IP-Adresse)
+            # validate input is a real IP address
             if not self._is_valid_ip(user_input["host"]):
                 errors["host"] = "invalid_host"
             else:
-                # Prüfen, ob das Gerät bereits hinzugefügt wurde
+                # validate device is already added
                 for entry in self._async_current_entries():
                     if entry.data.get("host") == user_input["host"]:
                         errors["host"] = "already_configured"
                         break
 
                 if not errors:
-                    # Neuen Eintrag erstellen
+                    # create a new device
                     return self.async_create_entry(title=f"Modbus Device ({user_input['host']})", data=user_input)
 
-        # Formular anzeigen
+        # show form to user
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema({

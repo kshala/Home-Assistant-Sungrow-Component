@@ -6,4 +6,12 @@ __pycache__
 /.vscode/
 
 # Home Assistant configuration
-config/*
+.HA_VERSION
+.storage/*
+blueprints/*
+home-assistant*
+automations.yaml
+configuration.yaml
+scenes.yaml
+scripts.yaml
+secrets.yaml
