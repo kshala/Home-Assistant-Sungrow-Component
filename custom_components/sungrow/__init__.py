@@ -1,11 +1,14 @@
-from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
-
-from .const import { DOMAIN, ENTITY_DEFINITIONS }
+"""Custom Component for Sungrow Devices."""
 
 import logging
 
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+
+from .const import DOMAIN, ENTITIES
+
 _LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up Modbus sensors for a specific device."""
@@ -26,13 +29,13 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     entities = []
 
     if device_type == "inverter":
-        #entities.extend([
+        # entities.extend([
         #    ModbusSensor(modbus_device, "Inverter Power", "holding", 100, "W"),
         #    ModbusSensor(modbus_device, "Inverter Voltage", "input", 101, "V"),
-        #])
-        #entities.append(ModbusInputNumber(modbus_device, "Inverter Max Power", 200, 0, 5000, 10))
+        # ])
+        # entities.append(ModbusInputNumber(modbus_device, "Inverter Max Power", 200, 0, 5000, 10))
 
-        for sensor_def in SENSOR_DEFINITIONS[device_config["device_type"]]:
+        for sensor_def in ENTITIES[device_config["device_type"]]:
             entities.append(
                 ModbusSensor(
                     coordinator,
@@ -43,15 +46,19 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
                 )
             )
     elif device_type == "battery":
-        entities.extend([
-            ModbusSensor(coordinator, "Battery Charge", "holding", 200, "%"),
-            ModbusSensor(coordinator, "Battery Voltage", "input", 201, "V"),
-        ])
+        entities.extend(
+            [
+                ModbusSensor(coordinator, "Battery Charge", "holding", 200, "%"),
+                ModbusSensor(coordinator, "Battery Voltage", "input", 201, "V"),
+            ]
+        )
     elif device_type == "wallbox":
-        entities.extend([
-            ModbusSensor(coordinator, "Wallbox Current", "holding", 300, "A"),
-            ModbusSensor(coordinator, "Wallbox Status", "input", 301, ""),
-        ])
+        entities.extend(
+            [
+                ModbusSensor(coordinator, "Wallbox Current", "holding", 300, "A"),
+                ModbusSensor(coordinator, "Wallbox Status", "input", 301, ""),
+            ]
+        )
 
     async_add_entities(sensors)
 
