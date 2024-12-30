@@ -1,10 +1,9 @@
 {
     "domain": "sungrow",
-    "name": "Home Assistant Sungrow Component",
+    "name": "Sungrow",
     "version": "0.0.1",
     "documentation": "https://github.com/kshala/Home-Assistant-Sungrow-Component",
-    "dependencies": ["pymodbus>=2.5.3"],
-    "requirements": [],
+    "requirements": ["pymodbus==3.7.4"],
     "codeowners": ["@kshala"],
     "config_flow": true
 }

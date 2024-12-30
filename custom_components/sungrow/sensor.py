@@ -1,15 +1,26 @@
+"""Sensor entity type for Sungrow."""
+
 from homeassistant.components.sensor import SensorEntity
+from homeassistant.helpers.device_registry import DeviceInfo
+
 
 class ModbusSensor(SensorEntity):
     """Representation of a Modbus sensor."""
 
-    def __init__(self, coordinator, name, register_type, register_address, unit_of_measurement):
-        self._coordinator = coordinator 
+    def __init__(
+        self, coordinator, name, register_type, register_address, unit_of_measurement
+    ):
+        self._coordinator = coordinator
         self._name = name
         self._register_type = register_type
         self._register_address = register_address
         self._unit_of_measurement = unit_of_measurement
         self._state = None
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return None
 
     @property
     def name(self):
