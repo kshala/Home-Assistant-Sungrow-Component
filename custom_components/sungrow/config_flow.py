@@ -5,20 +5,23 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.helpers.selector import (
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 
 from .const import (
-    DOMAIN,
+    CONF_CONNECTION_TYPE,
+    CONF_CONNECTION_TYPE_SERIAL,
+    CONF_CONNECTION_TYPE_TCP,
     CONF_DEVICE_TYPE,
     CONF_DEVICE_TYPE_INVERTER,
     CONF_DEVICE_TYPE_WALLBOX,
-    CONF_CONNECTION_TYPE,
-    CONF_CONNECTION_TYPE_TCP,
-    CONF_CONNECTION_TYPE_SERIAL,
+    DOMAIN,
 )
 
-# possiblly you need to add following code to support localization of the option data schema
-# from homeassistant.helpers.selector import localize
-# self.hass.helpers.translation.localize("config.step.user_device_type.data.device_type.inverter")
+# TODO: learn more about https://www.home-assistant.io/docs/blueprint/selectors/
 
 
 class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -34,18 +37,30 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is None:
             return self.async_show_form(
-                step_id="user_device_type",
+                step_id="user",
                 data_schema=vol.Schema(
                     {
-                        vol.Required(
-                            CONF_DEVICE_TYPE, default=CONF_DEVICE_TYPE_INVERTER
-                        ): vol.In(
-                            (CONF_DEVICE_TYPE_INVERTER, CONF_DEVICE_TYPE_WALLBOX)
+                        vol.Required(CONF_DEVICE_TYPE): SelectSelector(
+                            SelectSelectorConfig(
+                                options=[
+                                    CONF_DEVICE_TYPE_INVERTER,
+                                    CONF_DEVICE_TYPE_WALLBOX,
+                                ],
+                                mode=SelectSelectorMode.DROPDOWN,
+                                translation_key=CONF_DEVICE_TYPE,
+                                sort=False,
+                            )
                         ),
-                        vol.Required(
-                            CONF_CONNECTION_TYPE, default=CONF_CONNECTION_TYPE_TCP
-                        ): vol.In(
-                            (CONF_CONNECTION_TYPE_TCP, CONF_CONNECTION_TYPE_SERIAL)
+                        vol.Required(CONF_CONNECTION_TYPE): SelectSelector(
+                            SelectSelectorConfig(
+                                options=[
+                                    CONF_CONNECTION_TYPE_TCP,
+                                    CONF_CONNECTION_TYPE_SERIAL,
+                                ],
+                                mode=SelectSelectorMode.LIST,
+                                translation_key=CONF_CONNECTION_TYPE,
+                                sort=False,
+                            )
                         ),
                     }
                 ),

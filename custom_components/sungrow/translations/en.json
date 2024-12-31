@@ -11,36 +11,10 @@
         "step": {
             "user": {
                 "data": {
-                    "device_type": {
-                        "device_type_inverter": "Inverter",
-                        "device_type_wallbox": "Wallbox"
-                    },
-                    "connection_type": {
-                        "connection_type_tcp": "TCP",
-                        "connection_type_serial": "Serial"
-                    }
-                },
-                "data_description": {
-                    "device_type": "The device type to add to Home Assistant.",
-                    "connection_type": "How Home Assistant can connect to the device."
-                },
-                "description": "Set up your Sungrow integration."
-            },
-            "user_connection_tcp": {
-                "data": {
+                    "device_type": "Device type",
+                    "connection_type": "Connection type",
                     "host": "Host",
                     "tcp_port": "TCP port",
-                    "modbus_address": "Modbus address"
-                },
-                "data_description": {
-                    "host": "The hostname or IP address of your Sungrow device to connect to.",
-                    "port": "The TCP port of the Shelly device to connect to.",
-                    "modbus_address": "The Modbus device address of the Sungrow device."
-                },
-                "description": "Set up your Sungrow integration."
-            },
-            "user_connection_serial": {
-                "data": {
                     "serial_port": "Serial port",
                     "baudrate": "Baudrate",
                     "method": "Method",
@@ -48,9 +22,12 @@
                     "stopbits": "Stop bits",
                     "parity": "Parity",
                     "modbus_address": "Modbus address"
-
                 },
                 "data_description": {
+                    "device_type": "The device type to add to Home Assistant.",
+                    "connection_type": "How Home Assistant can connect to the device.",
+                    "host": "The hostname or IP address of your Sungrow device to connect to.",
+                    "tcp_port": "The TCP port of the Shelly device to connect to.",
                     "serial_port": "The serial port of your Sungrow device to connect to.",
                     "baudrate": "The baudrate of your Sungrow device.",
                     "method": "The method of the connection to modbus.",
@@ -60,6 +37,20 @@
                     "modbus_address": "The Modbus device address of the Sungrow device."
                 },
                 "description": "Set up your Sungrow integration."
+            }
+        }
+    },
+    "selector": {
+        "device_type": {
+            "options": {
+                "inverter": "Inverter",
+                "wallbox": "Wallbox"
+            }
+        },
+        "connection_type": {
+            "options": {
+                "tcp": "TCP",
+                "serial": "Serial"
             }
         }
     }
