@@ -13,7 +13,6 @@ from homeassistant.helpers.selector import (
 
 from .const import (
     CONF_CONNECTION_TYPE,
-    CONF_MODBUS_ADDRESS,
     CONF_CONNECTION_TYPE_SERIAL,
     CONF_CONNECTION_TYPE_SERIAL_BAUDRATE,
     CONF_CONNECTION_TYPE_SERIAL_BYTESIZE,
@@ -24,15 +23,15 @@ from .const import (
     CONF_CONNECTION_TYPE_TCP,
     CONF_CONNECTION_TYPE_TCP_HOST,
     CONF_CONNECTION_TYPE_TCP_PORT,
+    CONF_DEVICE_NAME,
     CONF_DEVICE_TYPE,
     CONF_DEVICE_TYPE_INVERTER,
     CONF_DEVICE_TYPE_WALLBOX,
+    CONF_MODBUS_ADDRESS,
     DEFAULTS,
     DOMAIN,
-    OPTIONS
+    OPTIONS,
 )
-
-# TODO: learn more about https://www.home-assistant.io/docs/blueprint/selectors/
 
 
 class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -49,79 +48,27 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is None:
             return self.show_form_init()
 
+        device_name = user_input.get(CONF_DEVICE_NAME)
         device_type = user_input.get(CONF_DEVICE_TYPE)
         connection_type = user_input.get(CONF_CONNECTION_TYPE)
 
         if connection_type == CONF_CONNECTION_TYPE_TCP:
-            tcp_host = user_input.get(CONF_CONNECTION_TYPE_TCP_HOST)
-            tcp_port = user_input.get(CONF_CONNECTION_TYPE_TCP_PORT)
-            modbus_address = user_input.get(CONF_MODBUS_ADDRESS)
-
-            if tcp_host is None:
-                return self.async_show_form(
-                    step_id="user",
-                    data_schema=vol.Schema(
-                        {
-                            vol.Required(CONF_CONNECTION_TYPE_TCP_HOST): str,
-                            vol.Required(
-                                CONF_CONNECTION_TYPE_TCP_PORT,
-                                default=DEFAULTS[CONF_CONNECTION_TYPE_TCP_PORT],
-                            ): vol.Coerce(int),
-                            vol.Required(
-                                CONF_MODBUS_ADDRESS,
-                                default=DEFAULTS[CONF_MODBUS_ADDRESS][device_type][
-                                    connection_type
-                                ],
-                            ): vol.Coerce(int),
-                        }
-                    ),
-                    last_step=True,
-                )
+            return self.handle_connection_type_tcp(user_input, device_name, device_type)
 
         if connection_type == CONF_CONNECTION_TYPE_SERIAL:
-            serial_port = user_input.get(CONF_CONNECTION_TYPE_SERIAL_PORT)
-            baudrate = user_input.get(CONF_CONNECTION_TYPE_SERIAL_BAUDRATE)
-            method = user_input.get(CONF_CONNECTION_TYPE_SERIAL_METHOD)
-            bytesize = user_input.get(CONF_CONNECTION_TYPE_SERIAL_BYTESIZE)
-            stopbits = user_input.get(CONF_CONNECTION_TYPE_SERIAL_STOPBITS)
-            parity = user_input.get(CONF_CONNECTION_TYPE_SERIAL_PARITY)
-            modbus_address = user_input.get(CONF_MODBUS_ADDRESS)
-
-            if serial_port is None:
-                return self.async_show_form(
-                    step_id="user",
-                    data_schema=vol.Schema(
-                        {
-                            vol.Required(
-                                CONF_CONNECTION_TYPE_SERIAL_PORT,
-                                default=DEFAULTS[CONF_CONNECTION_TYPE_SERIAL_PORT],
-                            ): vol.Coerce(int),
-                            vol.Required(
-                                CONF_CONNECTION_TYPE_SERIAL_BAUDRATE,
-                                default=DEFAULTS[CONF_CONNECTION_TYPE_SERIAL_BAUDRATE],
-                            ): vol.Coerce(int),
-                            vol.Required(
-                                CONF_CONNECTION_TYPE_SERIAL_METHOD,
-                                default=DEFAULTS[CONF_CONNECTION_TYPE_SERIAL_METHOD]
-                            ): str
-                            vol.Required(
-                                CONF_MODBUS_ADDRESS,
-                                default=DEFAULTS[CONF_MODBUS_ADDRESS][device_type][
-                                    connection_type
-                                ],
-                            ): vol.Coerce(int),
-                        }
-                    ),
-                    last_step=False,
-                )
+            return self.handle_connection_type_serial(
+                user_input, device_name, device_type
+            )
 
         return None
 
-    def show_form_init(self):
+    def show_form_init(self) -> ConfigFlowResult:
+        """Show the initial form."""
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
+                    vol.Required(CONF_DEVICE_NAME): str,
                     vol.Required(CONF_DEVICE_TYPE): SelectSelector(
                         SelectSelectorConfig(
                             options=OPTIONS[CONF_DEVICE_TYPE],
@@ -133,7 +80,7 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_CONNECTION_TYPE): SelectSelector(
                         SelectSelectorConfig(
                             options=OPTIONS[CONF_CONNECTION_TYPE],
-                            mode=SelectSelectorMode.LIST,
+                            mode=SelectSelectorMode.DROPDOWN,
                             translation_key=CONF_CONNECTION_TYPE,
                             sort=False,
                         )
@@ -143,12 +90,115 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
             last_step=False,
         )
 
-    #         # validate input is a real IP address
-    #         if not self._is_valid_ip(user_input["host"]):
-    #             errors["host"] = "invalid_host"
-    #         else:
-    #             # validate device is already added
-    #             for entry in self._async_current_entries():
-    #                 if entry.data.get("host") == user_input["host"]:
-    #                     errors["host"] = "already_configured"
-    #                     break
+    def handle_connection_type_tcp(
+        self, user_input: dict[str, Any], device_name: str, device_type: str
+    ) -> ConfigFlowResult:
+        """Handle connection type TCP."""
+        tcp_host = user_input.get(CONF_CONNECTION_TYPE_TCP_HOST)
+        tcp_port = user_input.get(CONF_CONNECTION_TYPE_TCP_PORT)
+        modbus_address = user_input.get(CONF_MODBUS_ADDRESS)
+
+        if tcp_host is None:
+            return self.async_show_form(
+                step_id="user",
+                data_schema=vol.Schema(
+                    {
+                        vol.Required(CONF_CONNECTION_TYPE_TCP_HOST): str,
+                        vol.Required(
+                            CONF_CONNECTION_TYPE_TCP_PORT,
+                            default=DEFAULTS[CONF_CONNECTION_TYPE_TCP_PORT],
+                        ): vol.Coerce(int),
+                        vol.Required(
+                            CONF_MODBUS_ADDRESS,
+                            default=DEFAULTS[CONF_MODBUS_ADDRESS][device_type][
+                                CONF_CONNECTION_TYPE_TCP
+                            ],
+                        ): vol.Coerce(int),
+                    }
+                ),
+                last_step=True,
+            )
+
+        return None
+
+    def handle_connection_type_serial(
+        self, user_input: dict[str, Any], device_name: str, device_type: str
+    ) -> ConfigFlowResult:
+        """Handle connection type serial."""
+        serial_port = user_input.get(CONF_CONNECTION_TYPE_SERIAL_PORT)
+        baudrate = user_input.get(CONF_CONNECTION_TYPE_SERIAL_BAUDRATE)
+        method = user_input.get(CONF_CONNECTION_TYPE_SERIAL_METHOD)
+        bytesize = user_input.get(CONF_CONNECTION_TYPE_SERIAL_BYTESIZE)
+        stopbits = user_input.get(CONF_CONNECTION_TYPE_SERIAL_STOPBITS)
+        parity = user_input.get(CONF_CONNECTION_TYPE_SERIAL_PARITY)
+        modbus_address = user_input.get(CONF_MODBUS_ADDRESS)
+
+        if serial_port is None:
+            return self.async_show_form(
+                step_id="user",
+                data_schema=vol.Schema(
+                    {
+                        vol.Required(
+                            CONF_CONNECTION_TYPE_SERIAL_PORT,
+                            default=DEFAULTS[CONF_CONNECTION_TYPE_SERIAL_PORT],
+                        ): vol.Coerce(int),
+                        vol.Required(
+                            CONF_CONNECTION_TYPE_SERIAL_BAUDRATE,
+                            default=DEFAULTS[CONF_CONNECTION_TYPE_SERIAL_BAUDRATE],
+                        ): vol.Coerce(int),
+                        vol.Required(
+                            CONF_CONNECTION_TYPE_SERIAL_METHOD,
+                            default=DEFAULTS[CONF_CONNECTION_TYPE_SERIAL_METHOD],
+                        ): SelectSelector(
+                            SelectSelectorConfig(
+                                options=OPTIONS[CONF_CONNECTION_TYPE_SERIAL_METHOD],
+                                mode=SelectSelectorMode.DROPDOWN,
+                                translation_key=CONF_CONNECTION_TYPE_SERIAL_METHOD,
+                                sort=False,
+                            )
+                        ),
+                        vol.Required(
+                            CONF_CONNECTION_TYPE_SERIAL_BYTESIZE,
+                            default=DEFAULTS[CONF_CONNECTION_TYPE_SERIAL_BYTESIZE],
+                        ): SelectSelector(
+                            SelectSelectorConfig(
+                                options=OPTIONS[CONF_CONNECTION_TYPE_SERIAL_BYTESIZE],
+                                mode=SelectSelectorMode.DROPDOWN,
+                                translation_key=CONF_CONNECTION_TYPE_SERIAL_BYTESIZE,
+                                sort=False,
+                            )
+                        ),
+                        vol.Required(
+                            CONF_CONNECTION_TYPE_SERIAL_STOPBITS,
+                            default=DEFAULTS[CONF_CONNECTION_TYPE_SERIAL_STOPBITS],
+                        ): SelectSelector(
+                            SelectSelectorConfig(
+                                options=OPTIONS[CONF_CONNECTION_TYPE_SERIAL_STOPBITS],
+                                mode=SelectSelectorMode.DROPDOWN,
+                                translation_key=CONF_CONNECTION_TYPE_SERIAL_STOPBITS,
+                                sort=False,
+                            )
+                        ),
+                        vol.Required(
+                            CONF_CONNECTION_TYPE_SERIAL_PARITY,
+                            default=DEFAULTS[CONF_CONNECTION_TYPE_SERIAL_PARITY],
+                        ): SelectSelector(
+                            SelectSelectorConfig(
+                                options=OPTIONS[CONF_CONNECTION_TYPE_SERIAL_PARITY],
+                                mode=SelectSelectorMode.DROPDOWN,
+                                translation_key=CONF_CONNECTION_TYPE_SERIAL_PARITY,
+                                sort=False,
+                            )
+                        ),
+                        vol.Required(
+                            CONF_MODBUS_ADDRESS,
+                            default=DEFAULTS[CONF_MODBUS_ADDRESS][device_type][
+                                CONF_CONNECTION_TYPE_SERIAL
+                            ],
+                        ): vol.Coerce(int),
+                    }
+                ),
+                last_step=False,
+            )
+
+        return None

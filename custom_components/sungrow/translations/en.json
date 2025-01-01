@@ -11,6 +11,7 @@
         "step": {
             "user": {
                 "data": {
+                    "device_name": "Device name",
                     "device_type": "Device type",
                     "connection_type": "Connection type",
                     "host": "Host",
@@ -24,6 +25,7 @@
                     "modbus_address": "Modbus address"
                 },
                 "data_description": {
+                    "device_name": "The name of the device to add to Home Assistant.",
                     "device_type": "The device type to add to Home Assistant.",
                     "connection_type": "How Home Assistant can connect to the device.",
                     "host": "The hostname or IP address of your Sungrow device to connect to.",
@@ -51,6 +53,33 @@
             "options": {
                 "tcp": "TCP",
                 "serial": "Serial"
+            }
+        },
+        "method": {
+            "options": {
+                "rtu": "RTU",
+                "ascii": "ASCII"
+            }
+        },
+        "bytesize": {
+            "options": {
+                "5": "5",
+                "6": "6",
+                "7": "7",
+                "8": "8"
+            }
+        },
+        "stopbits": {
+            "options": {
+                "1": "1",
+                "2": "2"
+            }
+        },
+        "parity": {
+            "options": {
+                "N": "None",
+                "E": "Even",
+                "O": "Odd"
             }
         }
     }
