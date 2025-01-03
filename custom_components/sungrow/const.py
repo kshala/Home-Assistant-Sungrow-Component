@@ -76,13 +76,62 @@ DEFAULTS = {
     },
 }
 
+ENTITY_DEVICE_TYPE_CODE = "device_type_code"
+
 ENTITIES = {
-    "inverter": [
-        {"name": "Inverter Power", "register": 100, "type": "holding", "unit": "W"},
-        {"name": "Inverter Voltage", "register": 101, "type": "input", "unit": "V"},
-    ],
-    "battery": [
-        {"name": "Battery Charge", "register": 300, "type": "holding", "unit": "%"},
-        {"name": "Battery Voltage", "register": 301, "type": "input", "unit": "V"},
-    ],
+    CONF_DEVICE_TYPE_INVERTER: {
+        ENTITY_DEVICE_TYPE_CODE: {
+            "name": "Device type code",
+            "register": 4999,
+            "register_type": "input",
+            "register_size": 1,
+            "data_type": "enum",
+            "data_values": {
+                0x0D06: "SH3K6",
+                0x0D07: "SH4K6",
+                0x0D09: "SH5K-20",
+                0x0D03: "SH5K-V13",
+                0x0D0A: "SH3K6-30",
+                0x0D0B: "SH4K6-30",
+                0x0D0C: "SH5K-30",
+                0x0D17: "SH3.RS",
+                0x0D0D: "SH3.6RS",
+                0x0D18: "SH4.0RS",
+                0x0D0F: "SH5.0RS",
+                0x0D10: "SH6.0RS",
+                0x0D1A: "SH8.0RS",
+                0x0D1B: "SH10RS",
+                0x0E00: "SH5.0RT",
+                0x0E01: "SH6.0RT",
+                0x0E02: "SH8.0RT",
+                0x0E03: "SH10RT",
+                0x0E10: "SH5.0RT-20",
+                0x0E11: "SH6.0RT-20",
+                0x0E12: "SH8.0RT-20",
+                0x0E13: "SH10RT-20",
+                0x0E0C: "SH5.0RT-V112",
+                0x0E0D: "SH6.0RT-V112",
+                0x0E0E: "SH8.0RT-V112",
+                0x0E0F: "SH10RT-V112",
+                0x0E08: "SH5.0RT-V122",
+                0x0E09: "SH6.0RT-V122",
+                0x0E0A: "SH8.0RT-V122",
+                0x0E0B: "SH10RT-V122",
+                0x0D0E: "SH4.6RS",
+            },
+        },
+    },
+    CONF_DEVICE_TYPE_WALLBOX: {
+        ENTITY_DEVICE_TYPE_CODE: {
+            "name": "Device type code",
+            "register": 21223,
+            "register_type": "input",
+            "register_size": 1,
+            "data_type": "enum",
+            "data_values": {
+                0x20ED: "AC007-00",
+                0x20DA: "AC011E-01",
+            },
+        },
+    },
 }
