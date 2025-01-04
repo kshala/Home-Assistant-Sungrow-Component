@@ -44,6 +44,11 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
     VERSION = 1
     MINOR_VERSION = 0
 
+    connection_type = None
+
+    tcp_config: ModbusTcpDeviceConfig = None
+    serial_config: ModbusSerialDeviceConfig = None
+
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -52,26 +57,20 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is None:
             return await self.async_show_form_init()
 
-        device_name = user_input.get(CONF_DEVICE_NAME)
-        device_type = user_input.get(CONF_DEVICE_TYPE)
-        connection_type = user_input.get(CONF_CONNECTION_TYPE)
+        if self.connection_type is None:
+            self.connection_type = user_input.get(CONF_CONNECTION_TYPE)
 
-        if connection_type == CONF_CONNECTION_TYPE_TCP:
-            return await self.async_handle_connection_type_tcp(
-                user_input, device_name, device_type
-            )
+        if self.connection_type == CONF_CONNECTION_TYPE_TCP:
+            return await self.async_handle_connection_type_tcp(user_input)
 
-        if connection_type == CONF_CONNECTION_TYPE_SERIAL:
-            return await self.async_handle_connection_type_serial(
-                user_input, device_name, device_type
-            )
+        if self.connection_type == CONF_CONNECTION_TYPE_SERIAL:
+            return await self.async_handle_connection_type_serial(user_input)
 
         return None
 
     async def async_show_form_init(self) -> ConfigFlowResult:
         """Show the initial form."""
         return self.async_show_form(
-            step_id="user",
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_DEVICE_NAME): str,
@@ -97,31 +96,36 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
         )
 
     async def async_handle_connection_type_tcp(
-        self, user_input: dict[str, Any], device_name: str, device_type: str
+        self, user_input: dict[str, Any]
     ) -> ConfigFlowResult:
         """Handle connection type TCP."""
-        tcp_host = user_input.get(CONF_CONNECTION_TYPE_TCP_HOST)
-        tcp_port = user_input.get(CONF_CONNECTION_TYPE_TCP_PORT)
-        modbus_address = user_input.get(CONF_MODBUS_ADDRESS)
+
+        if self.tcp_config is None:
+            self.tcp_config = ModbusTcpDeviceConfig(
+                name=user_input.get(CONF_DEVICE_NAME),
+                device_type=user_input.get(CONF_DEVICE_TYPE),
+                host=user_input.get(CONF_CONNECTION_TYPE_TCP_HOST),
+                port=user_input.get(CONF_CONNECTION_TYPE_TCP_PORT),
+                modbus_address=user_input.get(CONF_MODBUS_ADDRESS),
+            )
+
+        if self.tcp_config.host is None:
+            self.tcp_config.host = user_input.get(CONF_CONNECTION_TYPE_TCP_HOST)
+
+        if self.tcp_config.port is None:
+            self.tcp_config.port = user_input.get(CONF_CONNECTION_TYPE_TCP_PORT)
+
+        if self.tcp_config.modbus_address is None:
+            self.tcp_config.modbus_address = user_input.get(CONF_MODBUS_ADDRESS)
 
         errors: dict[str, str] = None
 
-        if tcp_host is not None:
-            modbus_device: ModbusDevice = ModbusDevice(
-                ModbusTcpDeviceConfig(
-                    name=device_name,
-                    device_type=device_type,
-                    modbus_address=modbus_address,
-                    host=tcp_host,
-                    port=tcp_port,
-                )
-            )
+        if self.tcp_config.iscomplete():
+            modbus_device: ModbusDevice = ModbusDevice(self.tcp_config)
+            errors = await self.async_test_device(modbus_device)
 
-            errors = await self.async_test_connection(modbus_device)
-
-        if tcp_host is None or errors is not None:
+        if self.tcp_config.host is None or errors is not None:
             return self.async_show_form(
-                step_id="user",
                 data_schema=vol.Schema(
                     {
                         vol.Required(CONF_CONNECTION_TYPE_TCP_HOST): str,
@@ -131,13 +135,14 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
                         ): vol.Coerce(int),
                         vol.Required(
                             CONF_MODBUS_ADDRESS,
-                            default=DEFAULTS[CONF_MODBUS_ADDRESS][device_type][
-                                CONF_CONNECTION_TYPE_TCP
-                            ],
+                            default=DEFAULTS[CONF_MODBUS_ADDRESS][
+                                self.tcp_config.device_type
+                            ][CONF_CONNECTION_TYPE_TCP],
                         ): vol.Coerce(int),
                     }
                 ),
-                last_step=True,
+                errors=errors,
+                last_step=False,
             )
 
         return None
@@ -146,17 +151,55 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any], device_name: str, device_type: str
     ) -> ConfigFlowResult:
         """Handle connection type serial."""
-        serial_port = user_input.get(CONF_CONNECTION_TYPE_SERIAL_PORT)
-        baudrate = user_input.get(CONF_CONNECTION_TYPE_SERIAL_BAUDRATE)
-        method = user_input.get(CONF_CONNECTION_TYPE_SERIAL_METHOD)
-        bytesize = user_input.get(CONF_CONNECTION_TYPE_SERIAL_BYTESIZE)
-        stopbits = user_input.get(CONF_CONNECTION_TYPE_SERIAL_STOPBITS)
-        parity = user_input.get(CONF_CONNECTION_TYPE_SERIAL_PARITY)
-        modbus_address = user_input.get(CONF_MODBUS_ADDRESS)
 
-        if serial_port is None:
+        if self.serial_config is None:
+            self.serial_config = ModbusSerialDeviceConfig(
+                name=user_input.get(CONF_DEVICE_NAME),
+                device_type=user_input.get(CONF_DEVICE_TYPE),
+                serial_port=user_input.get(CONF_CONNECTION_TYPE_SERIAL_PORT),
+                baudrate=user_input.get(CONF_CONNECTION_TYPE_SERIAL_BAUDRATE),
+                method=user_input.get(CONF_CONNECTION_TYPE_SERIAL_METHOD),
+                bytesize=user_input.get(CONF_CONNECTION_TYPE_SERIAL_BYTESIZE),
+                stopbits=user_input.get(CONF_CONNECTION_TYPE_SERIAL_STOPBITS),
+                parity=user_input.get(CONF_CONNECTION_TYPE_SERIAL_PARITY),
+                modbus_address=user_input.get(CONF_MODBUS_ADDRESS),
+            )
+
+        if self.serial_config.serial_port is None:
+            self.serial_config.serial_port = user_input.get(
+                CONF_CONNECTION_TYPE_SERIAL_PORT
+            )
+
+        if self.serial_config.baudrate is None:
+            self.serial_config.baudrate = user_input.get(
+                CONF_CONNECTION_TYPE_SERIAL_BAUDRATE
+            )
+
+        if self.serial_config.method is None:
+            self.serial_config.method = user_input.get(
+                CONF_CONNECTION_TYPE_SERIAL_METHOD
+            )
+
+        if self.serial_config.bytesize is None:
+            self.serial_config.bytesize = user_input.get(
+                CONF_CONNECTION_TYPE_SERIAL_BYTESIZE
+            )
+
+        if self.serial_config.stopbits is None:
+            self.serial_config.stopbits = user_input.get(
+                CONF_CONNECTION_TYPE_SERIAL_STOPBITS
+            )
+
+        if self.serial_config.parity is None:
+            self.serial_config.parity = user_input.get(
+                CONF_CONNECTION_TYPE_SERIAL_PARITY
+            )
+
+        if self.serial_config.modbus_address is None:
+            self.serial_config.modbus_address = user_input.get(CONF_MODBUS_ADDRESS)
+
+        if self.serial_config.serial_port is None:
             return self.async_show_form(
-                step_id="user",
                 data_schema=vol.Schema(
                     {
                         vol.Required(
@@ -224,12 +267,12 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return None
 
-    async def async_test_connection(
+    async def async_test_device(
         self, modbus_device: ModbusDevice
     ) -> tuple[str, dict[str, str]]:
         """Test the connection to the Modbus device."""
 
-        device_type_code = ENTITIES[modbus_device.device_name][ENTITY_DEVICE_TYPE_CODE]
+        device_type_code = ENTITIES[modbus_device.device_type][ENTITY_DEVICE_TYPE_CODE]
         register = device_type_code["register"]
         size = device_type_code["register_size"]
 
@@ -246,8 +289,8 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
 
             _LOGGER.debug("Device type code: %s", device_type)
 
-        except Exception as exc:  # noqa: BLE001
-            message = f"Test connection to Modbus device failed. {exc.message}"
+        except Exception as exc:
+            message = f"Test Modbus device failed. {exc}"
             _LOGGER.warning(message)
             return [None, {"base": message}]
 
