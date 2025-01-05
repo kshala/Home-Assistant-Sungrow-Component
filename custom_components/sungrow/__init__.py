@@ -3,30 +3,91 @@
 import logging
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+# from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType
 
-from .const import DOMAIN, ENTITIES
+from .const import (
+    CONF_CONNECTION_TYPE,
+    CONF_CONNECTION_TYPE_SERIAL,
+    CONF_CONNECTION_TYPE_TCP,
+    CONF_DEVICE_NAME,
+    CONF_DEVICE_TYPE,
+    CONF_DEVICE_TYPE_INVERTER,
+    CONF_DEVICE_TYPE_WALLBOX,
+    CONF_MODBUS_ADDRESS,
+    CONF_SERIAL_BAUDRATE,
+    CONF_SERIAL_BYTESIZE,
+    CONF_SERIAL_METHOD,
+    CONF_SERIAL_METHOD_ASCII,
+    CONF_SERIAL_METHOD_RTU,
+    CONF_SERIAL_PARITY,
+    CONF_SERIAL_PORT,
+    CONF_TCP_HOST,
+    CONF_TCP_PORT,
+    DOMAIN,
+    ENTITIES,
+)
+from .modbus_device import (
+    DataType,
+    ModbusDevice,
+    ModbusSerialDeviceConfig,
+    ModbusTcpDeviceConfig,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
+PLATFORMS = [Platform.BINARY_SENSOR, Platform.SENSOR]
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up the Sungrow component."""
+
+async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+    """Set up Sungrow from a config entry."""
+
+    connection_type = config_entry.data[CONF_CONNECTION_TYPE]
+
+    config: ModbusTcpDeviceConfig | ModbusSerialDeviceConfig
+    modubs_device: ModbusDevice
+
+    if connection_type == CONF_CONNECTION_TYPE_TCP:
+        config = ModbusTcpDeviceConfig(
+            name=config_entry.data[CONF_DEVICE_NAME],
+            device_type=config_entry.data[CONF_DEVICE_TYPE],
+            modbus_address=config_entry.data[CONF_MODBUS_ADDRESS],
+            host=config_entry.data[CONF_TCP_HOST],
+            tcp_port=config_entry.data[CONF_TCP_PORT],
+        )
+    elif connection_type == CONF_CONNECTION_TYPE_SERIAL:
+        config = ModbusSerialDeviceConfig(
+            name=config_entry.data[CONF_DEVICE_NAME],
+            device_type=config_entry.data[CONF_DEVICE_TYPE],
+            modbus_address=config_entry.data[CONF_MODBUS_ADDRESS],
+            serial_port=config_entry.data[CONF_SERIAL_PORT],
+            baudrate=config_entry.data[CONF_SERIAL_BAUDRATE],
+            bytesize=config_entry.data[CONF_SERIAL_BYTESIZE],
+            parity=config_entry.data[CONF_SERIAL_PARITY],
+            method=config_entry.data[CONF_SERIAL_METHOD],
+        )
+
+    modubs_device = ModbusDevice(config)
+    await modubs_device.connect()
+
+    config_entry.runtime_data = modubs_device
+    await hass.config_entries.async_forward_entry_setup(config_entry, PLATFORMS)
+
     return True
 
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> bool:
-    """Set up Sungrow from a config entry."""
-    config = hass.data[DOMAIN][config_entry.entry_id]
-    device_type = config["device_type"]
-    host = config["host"]
-    port = config["port"]
+async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+
+    unload_ok = hass.config_entries.async_unload_platforms(config_entry, PLATFORMS)
+    if unload_ok:
+        modbus_device: ModbusDevice = config_entry.runtime_data
+        modbus_device.close()
+
+    return unload_ok
 
     # # ModbusDevice-Instanz für das Gerät erstellen
     # modbus_device = ModbusDevice(host, port)

@@ -47,18 +47,24 @@ class ModbusTcpDeviceConfig(ModbusDeviceConfig):
     """Configuration for a Modbus device connected via TCP."""
 
     def __init__(
-        self, *, name: str, device_type: str, modbus_address: int, host: str, port: int
+        self,
+        *,
+        name: str,
+        device_type: str,
+        modbus_address: int,
+        host: str,
+        tcp_port: int,
     ) -> None:
         """Initialize the Modbus device configuration."""
         super().__init__(
             name=name, device_type=device_type, modbus_address=modbus_address
         )
         self.host: str = host
-        self.port: int = port
+        self.tcp_port: int = tcp_port
 
     def iscomplete(self) -> bool:
         """Check if the configuration is complete."""
-        return super().iscomplete() and bool(self.host) and bool(self.port)
+        return super().iscomplete() and bool(self.host) and bool(self.tcp_port)
 
 
 class ModbusSerialDeviceConfig(ModbusDeviceConfig):
@@ -116,7 +122,7 @@ class ModbusDevice:
             self._modbus_client = AsyncModbusTcpClient(
                 name=config.name,
                 host=config.host,
-                port=config.port,
+                port=config.tcp_port,
             )
         elif isinstance(config, ModbusSerialDeviceConfig):
             self._modbus_client = AsyncModbusSerialClient(

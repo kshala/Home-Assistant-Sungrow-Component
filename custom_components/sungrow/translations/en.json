@@ -10,43 +10,34 @@
         "flow_title": "{name}",
         "step": {
             "user": {
-                "sections": {
-                    "serial_extras": {
-                        "name": "Serial options",
-                        "description": "Optional settings for serial connections.",
-                        "data": {
-                            "baudrate": "Baudrate",
-                            "method": "Method",
-                            "bytesize": "Bytesize",
-                            "stopbits": "Stop bits",
-                            "parity": "Parity"
-                        },
-                        "data_description": {
-                            "baudrate": "The baudrate of your Sungrow device.",
-                            "method": "The method of the connection to modbus.",
-                            "bytesize": "The data size in bits of each byte.",
-                            "stopbits": "The number of stop bits.",
-                            "parity": "The parity of the data bytes"
-                        }
-                    }
-                },
                 "data": {
                     "device_name": "Device name",
                     "device_type": "Device type",
                     "connection_type": "Connection type",
+                    "modbus_address": "Modbus address",
                     "host": "Host",
                     "tcp_port": "TCP port",
                     "serial_port": "Serial port",
-                    "modbus_address": "Modbus address"
+                    "baudrate": "Baudrate",
+                    "method": "Method",
+                    "bytesize": "Bytesize",
+                    "stopbits": "Stop bits",
+                    "parity": "Parity"
+
                 },
                 "data_description": {
                     "device_name": "The name of the device to add to Home Assistant.",
                     "device_type": "The device type to add to Home Assistant.",
                     "connection_type": "How Home Assistant can connect to the device.",
+                    "modbus_address": "The Modbus device address of the Sungrow device.",
                     "host": "The hostname or IP address of your Sungrow device to connect to.",
                     "tcp_port": "The TCP port of the Shelly device to connect to.",
                     "serial_port": "The serial port of your Sungrow device to connect to.",
-                    "modbus_address": "The Modbus device address of the Sungrow device."
+                    "baudrate": "The baudrate of your Sungrow device.",
+                    "method": "The method of the connection to modbus.",
+                    "bytesize": "The data size in bits of each byte.",
+                    "stopbits": "The number of stop bits.",
+                    "parity": "The parity of the data bytes"
                 },
                 "description": "Set up your Sungrow integration."
             }
