@@ -1,6 +1,5 @@
 """ModbusDevice connects and communicates with a remote device either via TCP or Serial."""
 
-from enum import Enum
 import logging
 import struct
 
@@ -10,23 +9,10 @@ from pymodbus.constants import Endian
 from pymodbus.payload import BinaryPayloadDecoder
 from pymodbus.pdu import ModbusPDU
 
+from .helpers import DataType, RegisterType
+
+
 _LOGGER = logging.getLogger(__name__)
-
-
-class RegisterType(Enum):
-    """Enumeration for Modbus register types."""
-
-    INPUT = 1
-    HOLDING = 2
-
-
-class DataType(str, Enum):
-    """Enumeration for Modbus data types."""
-
-    SINT16 = "sint16"
-    UINT16 = "uint16"
-    SINT32 = "sint32"
-    UINT32 = "uint32"
 
 
 class ModbusDeviceConfig:

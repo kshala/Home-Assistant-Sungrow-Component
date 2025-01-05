@@ -29,11 +29,9 @@ from .const import (
     CONF_TCP_PORT,
     DEFAULTS,
     DOMAIN,
-    ENTITIES,
-    ENTITY_MODEL_NAME,
-    ENTITY_SERIAL_NUMBER,
     OPTIONS,
 )
+from .entity_descriptions import ENTITIES, ENTITY_MODEL_NAME, ENTITY_SERIAL_NUMBER
 from .modbus_device import (
     DataType,
     ModbusDevice,

@@ -3,7 +3,6 @@
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
 # from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -21,15 +20,13 @@ from .const import (
     CONF_SERIAL_BAUDRATE,
     CONF_SERIAL_BYTESIZE,
     CONF_SERIAL_METHOD,
-    CONF_SERIAL_METHOD_ASCII,
-    CONF_SERIAL_METHOD_RTU,
     CONF_SERIAL_PARITY,
     CONF_SERIAL_PORT,
     CONF_TCP_HOST,
     CONF_TCP_PORT,
     DOMAIN,
-    ENTITIES,
 )
+from .entity_descriptions import PLATFORMS
 from .modbus_device import (
     DataType,
     ModbusDevice,
@@ -38,8 +35,6 @@ from .modbus_device import (
 )
 
 _LOGGER = logging.getLogger(__name__)
-
-PLATFORMS = [Platform.BINARY_SENSOR, Platform.SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
