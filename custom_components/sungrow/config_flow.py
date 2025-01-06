@@ -19,6 +19,7 @@ from .const import (
     CONF_DEVICE_NAME,
     CONF_DEVICE_TYPE,
     CONF_MODBUS_ADDRESS,
+    CONF_OPTIONS,
     CONF_SERIAL_BAUDRATE,
     CONF_SERIAL_BYTESIZE,
     CONF_SERIAL_METHOD,
@@ -29,7 +30,6 @@ from .const import (
     CONF_TCP_PORT,
     DEFAULTS,
     DOMAIN,
-    OPTIONS,
 )
 from .entity_descriptions import ENTITIES, ENTITY_MODEL_NAME, ENTITY_SERIAL_NUMBER
 from .modbus_device import (
@@ -90,7 +90,7 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_DEVICE_NAME): str,
                     vol.Required(CONF_DEVICE_TYPE): SelectSelector(
                         SelectSelectorConfig(
-                            options=OPTIONS[CONF_DEVICE_TYPE],
+                            options=CONF_OPTIONS[CONF_DEVICE_TYPE],
                             mode=SelectSelectorMode.DROPDOWN,
                             translation_key=CONF_DEVICE_TYPE,
                             sort=False,
@@ -98,7 +98,7 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
                     ),
                     vol.Required(CONF_CONNECTION_TYPE): SelectSelector(
                         SelectSelectorConfig(
-                            options=OPTIONS[CONF_CONNECTION_TYPE],
+                            options=CONF_OPTIONS[CONF_CONNECTION_TYPE],
                             mode=SelectSelectorMode.DROPDOWN,
                             translation_key=CONF_CONNECTION_TYPE,
                             sort=False,
@@ -150,7 +150,6 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
                 user_input_required = True
                 errors = {"base": verify_result.error}
             else:
-                # TODO: Ensure this piece of code is correc.t This is the next story.
                 return self.async_create_entry(
                     title=self.config.name,
                     data={
@@ -229,7 +228,6 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
                 user_input_required = True
                 errors = {"base": verify_result.error}
             else:
-                # TODO: Ensure this piece of code is correc.t This is the next story.
                 return self.async_create_entry(
                     title=self.config.name,
                     data={
@@ -284,7 +282,7 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
                     CONF_SERIAL_METHOD, default=self.config.method
                 ): SelectSelector(
                     SelectSelectorConfig(
-                        options=OPTIONS[CONF_SERIAL_METHOD],
+                        options=CONF_OPTIONS[CONF_SERIAL_METHOD],
                         mode=SelectSelectorMode.DROPDOWN,
                         translation_key=CONF_SERIAL_METHOD,
                         sort=False,
@@ -294,7 +292,7 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
                     CONF_SERIAL_BYTESIZE, default=self.config.bytesize
                 ): SelectSelector(
                     SelectSelectorConfig(
-                        options=OPTIONS[CONF_SERIAL_BYTESIZE],
+                        options=CONF_OPTIONS[CONF_SERIAL_BYTESIZE],
                         mode=SelectSelectorMode.DROPDOWN,
                         translation_key=CONF_SERIAL_BYTESIZE,
                         sort=False,
@@ -304,7 +302,7 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
                     CONF_SERIAL_STOPBITS, default=self.config.stopbits
                 ): SelectSelector(
                     SelectSelectorConfig(
-                        options=OPTIONS[CONF_SERIAL_STOPBITS],
+                        options=CONF_OPTIONS[CONF_SERIAL_STOPBITS],
                         mode=SelectSelectorMode.DROPDOWN,
                         translation_key=CONF_SERIAL_STOPBITS,
                         sort=False,
@@ -314,7 +312,7 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
                     CONF_SERIAL_PARITY, default=self.config.parity
                 ): SelectSelector(
                     SelectSelectorConfig(
-                        options=OPTIONS[CONF_SERIAL_PARITY],
+                        options=CONF_OPTIONS[CONF_SERIAL_PARITY],
                         mode=SelectSelectorMode.DROPDOWN,
                         translation_key=CONF_SERIAL_PARITY,
                         sort=False,

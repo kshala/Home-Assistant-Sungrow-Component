@@ -2,10 +2,13 @@
 
 DOMAIN = "sungrow"
 
+# config flow specific constants
+
 CONF_DEVICE_NAME = "device_name"
 CONF_DEVICE_TYPE = "device_type"
 CONF_DEVICE_TYPE_INVERTER = "inverter"
 CONF_DEVICE_TYPE_WALLBOX = "wallbox"
+CONF_DEVICE_TYPE_BATTERY = "battery"
 
 CONF_CONNECTION_TYPE = "connection_type"
 CONF_CONNECTION_TYPE_TCP = "tcp"
@@ -33,7 +36,9 @@ CONF_SERIAL_PARITY_ODD = "O"
 
 CONF_MODBUS_ADDRESS = "modbus_address"
 
-OPTIONS = {
+# config flow specific available options for select selectors
+
+CONF_OPTIONS = {
     CONF_DEVICE_TYPE: [CONF_DEVICE_TYPE_INVERTER, CONF_DEVICE_TYPE_WALLBOX],
     CONF_CONNECTION_TYPE: [CONF_CONNECTION_TYPE_TCP, CONF_CONNECTION_TYPE_SERIAL],
     CONF_SERIAL_METHOD: [
@@ -56,6 +61,8 @@ OPTIONS = {
         CONF_SERIAL_PARITY_ODD,
     ],
 }
+
+# config flow specific default values
 
 DEFAULTS = {
     CONF_TCP_HOST: "",
