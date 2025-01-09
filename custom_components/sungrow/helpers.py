@@ -11,6 +11,7 @@ class DataType(str, Enum):
     SINT32 = "sint32"
     UINT32 = "uint32"
     STRING = "string"
+    BYTES = "bytes"
 
 
 class RegisterType(str, Enum):
