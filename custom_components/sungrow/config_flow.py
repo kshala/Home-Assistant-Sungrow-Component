@@ -31,25 +31,9 @@ from .const import (
     DEFAULTS,
     DOMAIN,
 )
-from .entity_descriptions import ENTITIES, ENTITY_MODEL_NAME, ENTITY_SERIAL_NUMBER
-from .modbus_device import (
-    DataType,
-    ModbusDevice,
-    ModbusSerialDeviceConfig,
-    ModbusTcpDeviceConfig,
-)
+from .modbus_device import ModbusDevice, ModbusSerialDeviceConfig, ModbusTcpDeviceConfig
 
 _LOGGER = logging.getLogger(__name__)
-
-
-class VerifyDeviceConfigResult:
-    """Result of verifying the device configuration."""
-
-    def __init__(self, model_name: str, serial_number: str, error: str) -> None:
-        """Initialize the result."""
-        self.model_name = model_name
-        self.serial_number = serial_number
-        self.error = error
 
 
 class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -145,10 +129,10 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
 
         errors: dict[str, str] = None
         if self.config.iscomplete() and not user_input_required:
-            verify_result = await self.async_verify_device_config()
-            if verify_result.error is not None:
+            error = await self.async_verify_device_config()
+            if error is not None:
                 user_input_required = True
-                errors = {"base": verify_result.error}
+                errors = {"base": error}
             else:
                 return self.async_create_entry(
                     title=self.config.name,
@@ -223,10 +207,10 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
 
         errors: dict[str, str] = None
         if self.config.iscomplete() and not user_input_required:
-            verify_result = await self.async_verify_device_config()
-            if verify_result.error is not None:
+            error = await self.async_verify_device_config()
+            if error is not None:
                 user_input_required = True
-                errors = {"base": verify_result.error}
+                errors = {"base": error}
             else:
                 return self.async_create_entry(
                     title=self.config.name,
@@ -321,36 +305,18 @@ class SungrowConfigFlow(ConfigFlow, domain=DOMAIN):
             }
         )
 
-    async def async_verify_device_config(self) -> VerifyDeviceConfigResult:
+    async def async_verify_device_config(self) -> str:
         """Test the connection to the Modbus device."""
 
         modbus_device = ModbusDevice(self.config)
-        device_type = self.config.device_type
-        model_name_value: str = None
-        serial_number_value: str = None
         error_message: str = None
 
         try:
             await modbus_device.connect()
-
-            entity_model_name = ENTITIES[device_type][ENTITY_MODEL_NAME]
-            register = entity_model_name["register"]
-            result = await modbus_device.read_int(register, data_type=DataType.UINT16)
-            model_name_value = entity_model_name["enum_values"][result]
-
-            entity_serial_number = ENTITIES[device_type][ENTITY_SERIAL_NUMBER]
-            register = entity_serial_number["register"]
-            register_size = entity_serial_number["register_size"]
-            result = await modbus_device.read_string(register, length=register_size)
-            serial_number_value = result
-
-            _LOGGER.debug("Model name: %s", model_name_value)
+            modbus_device.close()
         except Exception as exc:  # noqa: BLE001
             error_message = f"Test Modbus device failed. {exc}"
             _LOGGER.warning(error_message)
 
-        modbus_device.close()
         modbus_device = None
-        return VerifyDeviceConfigResult(
-            model_name_value, serial_number_value, error_message
-        )
+        return error_message

@@ -36,7 +36,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     if connection_type == CONF_CONNECTION_TYPE_TCP:
         config = ModbusTcpDeviceConfig(
-            name=config_entry.data[CONF_DEVICE_NAME],
+            name=config_entry.title,  # [CONF_DEVICE_NAME],
             device_type=config_entry.data[CONF_DEVICE_TYPE],
             modbus_address=config_entry.data[CONF_MODBUS_ADDRESS],
             host=config_entry.data[CONF_TCP_HOST],
@@ -44,7 +44,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         )
     elif connection_type == CONF_CONNECTION_TYPE_SERIAL:
         config = ModbusSerialDeviceConfig(
-            name=config_entry.data[CONF_DEVICE_NAME],
+            name=config_entry.title,  # .data[CONF_DEVICE_NAME],
             device_type=config_entry.data[CONF_DEVICE_TYPE],
             modbus_address=config_entry.data[CONF_MODBUS_ADDRESS],
             serial_port=config_entry.data[CONF_SERIAL_PORT],
@@ -58,7 +58,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     await modbus_device.connect()
 
     config_entry.runtime_data = modbus_device
-    await hass.config_entries.async_forward_entry_setup(config_entry, PLATFORMS)
+
+    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
     return True
 

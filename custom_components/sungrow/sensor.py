@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
+from typing import Final
 
 from homeassistant.components.binary_sensor import BinarySensorEntityDescription
 from homeassistant.components.sensor import (
@@ -20,7 +21,10 @@ from homeassistant.const import (
     UnitOfReactivePower,
     UnitOfTemperature,
 )
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from .const import (
     CONF_DEVICE_TYPE_BATTERY,
@@ -30,7 +34,29 @@ from .const import (
 from .helpers import DataType, RegisterType
 
 
-@dataclass(frozen=True)
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config: ConfigType,
+    async_add_entities: AddEntitiesCallback,
+    discovery_info: DiscoveryInfoType | None = None,
+) -> None:
+    """Set up the Sungrow sensors."""
+    device_entity_descriptions = ENTITIES[CONF_DEVICE_TYPE_INVERTER]
+    device_entities: list[SungrowSensor] = [
+        SungrowSensor(description) for description in device_entity_descriptions
+    ]
+    async_add_entities(device_entities)
+
+
+@dataclass(frozen=True, kw_only=True)
+class SungrowBinarySensorEntityDescription(BinarySensorEntityDescription):
+    """Describes Sungrow binary sensor entity."""
+
+    icon_off: str | None = None
+    icon_on: str | None = None
+
+
+@dataclass(frozen=True, kw_only=True)
 class SungrowSensorEntityDescription(SensorEntityDescription):
     """Describes Sungrow sensor entity."""
 
@@ -42,30 +68,7 @@ class SungrowSensorEntityDescription(SensorEntityDescription):
     enum_values: dict[int, str] | None = None
     related_models: list[str] | None = None
     entity_class: str | None = None
-
-
-class SungrowBinarySensorEntityDescription(BinarySensorEntityDescription):
-    """Describes Sungrow binary sensor entity."""
-
-    icon_off: str | None = None
-    icon_on: str | None = None
-
-
-class SungrowBitArraySensorEntityDescription:
-    """Describes Sungrow binary sensor entity."""
-
-    register: int
-    register_type: RegisterType = RegisterType.INPUT
-    data_type: DataType
-    data_count: int = 1
-    related_models: list[str] | None = None
-    entity_class: str | None = None
-    sensors: list[SungrowBinarySensorEntityDescription]
-
-
-type SungrowEntityTuple = tuple[
-    SungrowSensorEntityDescription | SungrowBitArraySensorEntityDescription, ...
-]
+    sensors: list[SungrowBinarySensorEntityDescription] | None = None
 
 
 class Entities(str, Enum):
@@ -204,7 +207,7 @@ class Entities(str, Enum):
 
 
 ENTITIES = {
-    CONF_DEVICE_TYPE_INVERTER: SungrowEntityTuple(
+    CONF_DEVICE_TYPE_INVERTER: (
         SungrowSensorEntityDescription(
             key=Entities.ProtocolNumber,
             register=4949,
@@ -580,6 +583,7 @@ ENTITIES = {
             native_unit_of_measurement=UnitOfPower.WATT,
             suggested_display_precision=0,
             register=5724,
+            data_type=DataType.UINT16,
         ),
         SungrowSensorEntityDescription(
             key=Entities.TotalBackupPower,
@@ -708,7 +712,7 @@ ENTITIES = {
             native_unit_of_measurement=UnitOfPower.WATT,
             suggested_display_precision=0,
             register=6289,
-            register_size=96,
+            data_count=96,
             data_type=DataType.UINT16,
             entity_class="SungrowAttributedDataSensor",
             related_models=["SH?.0RT*", "SH10RT*"],
@@ -720,7 +724,7 @@ ENTITIES = {
             native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
             suggested_display_precision=1,
             register=6385,
-            register_size=31,
+            data_count=31,
             data_type=DataType.UINT16,
             scale=0.1,
             entity_class="SungrowAttributedDataSensor",
@@ -744,7 +748,7 @@ ENTITIES = {
             native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
             suggested_display_precision=1,
             register=6416,
-            register_size=12,
+            data_count=12,
             data_type=DataType.UINT16,
             scale=0.1,
             entity_class="SungrowAttributedDataSensor",
@@ -757,7 +761,7 @@ ENTITIES = {
             native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
             suggested_display_precision=1,
             register=6428,
-            register_size=20,
+            data_count=20,
             data_type=DataType.UINT32,
             scale=0.1,
             entity_class="SungrowAttributedDataSensor",
@@ -780,7 +784,7 @@ ENTITIES = {
             native_unit_of_measurement=UnitOfPower.WATT,
             suggested_display_precision=0,
             register=6468,
-            register_size=96,
+            data_count=96,
             data_type=DataType.UINT16,
             entity_class="SungrowAttributedDataSensor",
             related_models=["SH?.0RT*", "SH10RT*"],
@@ -792,7 +796,7 @@ ENTITIES = {
             native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
             suggested_display_precision=1,
             register=6564,
-            register_size=31,
+            data_count=31,
             data_type=DataType.UINT16,
             scale=0.1,
             entity_class="SungrowAttributedDataSensor",
@@ -816,7 +820,7 @@ ENTITIES = {
             native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
             suggested_display_precision=1,
             register=6595,
-            register_size=12,
+            data_count=12,
             data_type=DataType.UINT16,
             scale=0.1,
             entity_class="SungrowAttributedDataSensor",
@@ -829,7 +833,7 @@ ENTITIES = {
             native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
             suggested_display_precision=1,
             register=6607,
-            register_size=20,
+            data_count=20,
             data_type=DataType.UINT32,
             scale=0.1,
             entity_class="SungrowAttributedDataSensor",
@@ -1037,7 +1041,7 @@ ENTITIES = {
             data_type=DataType.UINT32,
         ),
     ),
-    CONF_DEVICE_TYPE_BATTERY: SungrowEntityTuple(
+    CONF_DEVICE_TYPE_BATTERY: (
         SungrowSensorEntityDescription(
             key=Entities.BdcRatedPower,
             state_class=SensorStateClass.MEASUREMENT,
@@ -1139,7 +1143,7 @@ ENTITIES = {
             native_unit_of_measurement=UnitOfPower.WATT,
             suggested_display_precision=0,
             register=6647,
-            register_size=96,
+            data_count=96,
             data_type=DataType.UINT16,
             entity_class="SungrowAttributedDataSensor",
             related_models=["SH?.0RT*", "SH10RT*"],
@@ -1151,7 +1155,7 @@ ENTITIES = {
             native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
             suggested_display_precision=1,
             register=6743,
-            register_size=31,
+            data_count=31,
             data_type=DataType.UINT16,
             scale=0.1,
             entity_class="SungrowAttributedDataSensor",
@@ -1175,7 +1179,7 @@ ENTITIES = {
             native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
             suggested_display_precision=1,
             register=6774,
-            register_size=12,
+            data_count=12,
             data_type=DataType.UINT16,
             scale=0.1,
             entity_class="SungrowAttributedDataSensor",
@@ -1188,7 +1192,7 @@ ENTITIES = {
             native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
             suggested_display_precision=1,
             register=6786,
-            register_size=20,
+            data_count=20,
             data_type=DataType.UINT32,
             scale=0.1,
             entity_class="SungrowAttributedDataSensor",
@@ -1244,7 +1248,7 @@ ENTITIES = {
             data_type=DataType.UINT32,
             scale=0.1,
         ),
-        SungrowBitArraySensorEntityDescription(
+        SungrowSensorEntityDescription(
             key=Entities.PowerFlowStatus,
             register=13000,
             data_type=DataType.UINT16,
@@ -1333,11 +1337,11 @@ ENTITIES = {
             data_type=DataType.UINT32,
         ),
     ),
-    CONF_DEVICE_TYPE_WALLBOX: SungrowEntityTuple(
+    CONF_DEVICE_TYPE_WALLBOX: (
         SungrowSensorEntityDescription(
             key=Entities.SerialNumber,
             register=21200,
-            register_size=20,
+            data_count=20,
             data_type=DataType.STRING,
         ),
         SungrowSensorEntityDescription(
@@ -1353,44 +1357,21 @@ ENTITIES = {
 }
 
 
-class ModbusSensor(SensorEntity):
+class SungrowSensor(SensorEntity):
     """Representation of a Modbus sensor."""
 
-    def __init__(
-        self, coordinator, name, register_type, register_address, unit_of_measurement
-    ):
-        self._coordinator = coordinator
-        self._name = name
-        self._register_type = register_type
-        self._register_address = register_address
-        self._unit_of_measurement = unit_of_measurement
-        self._state = None
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return the device info."""
-        return None
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def state(self):
-        return self._state
-
-    @property
-    def unit_of_measurement(self):
-        return self._unit_of_measurement
+    def __init__(self, description: SungrowSensorEntityDescription) -> None:
+        """Initialize the sensor."""
+        self._description = description
 
     async def async_update(self):
         """Fetch new state data from Modbus."""
-        if self._register_type == "holding":
-            value = await self._device.read_holding_register(self._register_address)
-        elif self._register_type == "input":
-            value = await self._device.read_input_register(self._register_address)
-        else:
-            value = None
+        # if self._register_type == "holding":
+        #    value = await self._device.read_holding_register(self._register_address)
+        # elif self._register_type == "input":
+        #    value = await self._device.read_input_register(self._register_address)
+        # else:
+        #    value = None#
 
-        if value is not None:
-            self._state = value[0]  # Lies das erste Register aus
+        # if value is not None:
+        #    self._state = value[0]  # Lies das erste Register aus
