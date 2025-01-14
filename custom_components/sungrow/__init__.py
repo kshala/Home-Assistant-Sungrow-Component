@@ -3,10 +3,8 @@
 import logging
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-
-# from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import ConfigType
 
 from .const import (
     CONF_CONNECTION_TYPE,
@@ -14,8 +12,6 @@ from .const import (
     CONF_CONNECTION_TYPE_TCP,
     CONF_DEVICE_NAME,
     CONF_DEVICE_TYPE,
-    CONF_DEVICE_TYPE_INVERTER,
-    CONF_DEVICE_TYPE_WALLBOX,
     CONF_MODBUS_ADDRESS,
     CONF_SERIAL_BAUDRATE,
     CONF_SERIAL_BYTESIZE,
@@ -24,17 +20,11 @@ from .const import (
     CONF_SERIAL_PORT,
     CONF_TCP_HOST,
     CONF_TCP_PORT,
-    DOMAIN,
 )
-from .entity_descriptions import PLATFORMS
-from .modbus_device import (
-    DataType,
-    ModbusDevice,
-    ModbusSerialDeviceConfig,
-    ModbusTcpDeviceConfig,
-)
+from .modbus_device import ModbusDevice, ModbusSerialDeviceConfig, ModbusTcpDeviceConfig
 
 _LOGGER = logging.getLogger(__name__)
+PLATFORMS = [Platform.SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
@@ -43,7 +33,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     connection_type = config_entry.data[CONF_CONNECTION_TYPE]
 
     config: ModbusTcpDeviceConfig | ModbusSerialDeviceConfig
-    modubs_device: ModbusDevice
 
     if connection_type == CONF_CONNECTION_TYPE_TCP:
         config = ModbusTcpDeviceConfig(
@@ -65,10 +54,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             method=config_entry.data[CONF_SERIAL_METHOD],
         )
 
-    modubs_device = ModbusDevice(config)
-    await modubs_device.connect()
+    modbus_device = ModbusDevice(config)
+    await modbus_device.connect()
 
-    config_entry.runtime_data = modubs_device
+    config_entry.runtime_data = modbus_device
     await hass.config_entries.async_forward_entry_setup(config_entry, PLATFORMS)
 
     return True

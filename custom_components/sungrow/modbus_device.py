@@ -11,7 +11,6 @@ from pymodbus.pdu import ModbusPDU
 
 from .helpers import DataType, RegisterType
 
-
 _LOGGER = logging.getLogger(__name__)
 
 
